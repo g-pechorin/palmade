@@ -1,0 +1,68 @@
+apply plugin: 'groovy'
+apply plugin: 'java'
+apply plugin: 'scala'
+apply plugin: 'maven'
+
+group = 'peterlavalle.palmade'
+version = '0.0.0.0'
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: ('file://' + System.getProperty("user.home") + '/Dropbox/Public/repo/snap'))
+        }
+    }
+}
+
+apply plugin: 'samon'
+buildscript {
+	repositories {
+		// Samon uses stuff in central
+		mavenCentral()
+		mavenLocal()
+
+		// Samon will be here
+		maven {
+			name "Peter's Stuff"
+			url 'https://dl.dropboxusercontent.com/u/15094498/repo/snap'
+		}
+	}
+
+	// Samon needs to be added as a dependency
+	dependencies {
+		classpath 'com.peterlavalle.samon:grask:0.0.0.0-SNAPSHOT'
+	}
+}
+
+repositories {
+	mavenCentral()
+	mavenLocal()
+}
+
+dependencies {
+	compile 'org.scala-lang:scala-library:2.11.4'
+	compile gradleApi()
+}
+
+compileGroovy.dependsOn(compileScala)
+
+task release {
+	dependsOn(uploadArchives)
+	dependsOn(install)
+	
+	doLast {
+		def gradle = file('build.gradle')
+		def original = gradle.text.replaceAll('\r\n?', '\n')
+		
+		file('archive/build.gradle-' + version + '.bak').text = original
+		
+		assert(original.contains("\nversion = '$version'\n"))
+		assert(original.indexOf("\nversion = '$version'\n") == original.lastIndexOf("\nversion = '$version'\n"))
+		
+		def left = version.replaceAll('^(.*\\D)(\\d+)$', '$1')
+		def right = (version.replaceAll('^(.*\\D)(\\d+)$', '$2').toInteger() + 1).toString()
+		def behind = (version.replaceAll('^(.*\\D)(\\d+)$', '$2').toInteger() - 1).toString()
+		
+		gradle.text = original.replace("\nversion = '$version'\n", "\nversion = '$left$right'\n")
+	}
+}

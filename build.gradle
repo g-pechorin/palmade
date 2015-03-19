@@ -1,0 +1,30 @@
+// CMD /K "C: && CD $(CURRENT_DIRECTORY) && gradlew cacheCMake && PAUSE && EXIT"
+// https://gradle.org/docs/current/userguide/custom_plugins.html
+
+
+///
+// GradleW Task
+task wrapper(type: Wrapper) {
+	gradleVersion = '2.3'
+}
+
+
+apply plugin: 'palmade'
+
+import peterlavalle.palmake.*
+
+
+targets {
+	quickStart {
+
+	}
+	userGuide {
+		form = Form.PROGRAM
+
+		lib 'quickStart'
+		lib 'developerGuide'
+	}
+	developerGuide {
+	}
+}
+

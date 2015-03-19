@@ -1,0 +1,31 @@
+$import scala.collection.JavaConversions._
+$import java.util
+$import java.io.File
+$template(name: String, form: Form, sourceFiles: util.Set[File], libraries: util.List[String], includes: util.List[File])
+
+# Auto-Generated CMake file - DNE!
+
+$( includes.map(_.getAbsolutePath().replace("\\", "/")).foldLeft("include_directories(")(_ + "\n\t" + _) )$
+)
+
+$( form match {
+	case Form.PROGRAM => "add_executable(%s".format(name)
+	case Form.MODULE | Form.STATIC => "add_library(%s %s".format(name, form)
+} )$
+$( sourceFiles.toList.map {
+		case file: File =>
+			"\t%s\n".format(file.getAbsolutePath.replace('\\', '/'))
+	}.foldLeft("")(_ + _) )$
+)
+
+
+# libraries
+$( if (libraries.isEmpty())
+	"# ... are not used here"
+else {
+	// http://www.cmake.org/cmake/help/v3.0/command/target_link_libraries.html
+	
+	require(form == Form.PROGRAM || form == Form.MODULE)
+	
+	libraries.foldLeft("target_link_libraries(" + name + "\n\t")(_ + " " + _) + ")"
+} )$
