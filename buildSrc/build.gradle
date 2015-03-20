@@ -54,7 +54,7 @@ task release {
 		def gradle = file('build.gradle')
 		def original = gradle.text.replaceAll('\r\n?', '\n')
 		
-		file('archive/build.gradle-' + version + '.bak').text = original
+		file('bak/build.gradle-' + version + '.bak').text = original
 		
 		assert(original.contains("\nversion = '$version'\n"))
 		assert(original.indexOf("\nversion = '$version'\n") == original.lastIndexOf("\nversion = '$version'\n"))
