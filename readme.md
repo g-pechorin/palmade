@@ -68,4 +68,5 @@ Most of these require deeper knowledge of Gradle than the [User Guide](http://ww
 	* make things that only exist on "windows" "mac" or whatever
 	* make targets that only exist on Android or CMake (see below)
 * "pluggable" generators
-* generate Android.mk files
+	* generate Android.mk files
+* HEADERS form to download a bunch of headers and pretend that it's a lib
