@@ -15,13 +15,24 @@ import peterlavalle.palmake.Form
 
 
 targets {
+	developerGuide {
+	}
+
 	glfw3 {
 		form = Form.REMOTE
-		root = //'glfw-3.1.1@https://github.com/glfw/glfw/archive/3.1.1.zip'
-			'glfw-29b40112c234c3021648ea42a5e74cc122ba08b4@https://github.com/glfw/glfw/archive/29b40112c234c3021648ea42a5e74cc122ba08b4.zip'
+
+		// you don't need-need this arrangement, but it makes the example easier
+		ext.variant = '29b40112c234c3021648ea42a5e74cc122ba08b4'
+		root = "glfw-$variant@https://github.com/glfw/glfw/archive/$variant" + '.zip'
 
 		inc 'include'
 	}
+
+	graphical {
+		form = Form.PROGRAM
+		lib 'glfw3'
+	}
+
 	quickStart {
 
 	}
@@ -30,8 +41,6 @@ targets {
 
 		lib 'quickStart'
 		lib 'developerGuide'
-	}
-	developerGuide {
 	}
 }
 

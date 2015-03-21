@@ -101,6 +101,12 @@ public class Target {
 		includeFolders.add(include)
 	}
 
+	/**
+	 * Export are #include folders that users of this target should see. This method collects them
+	 *
+	 * @param project
+	 * @return a LinkedList<File> pointing to exported folders
+	 */
 	def getExports(final Project project) {
 		def found = new LinkedList<File>()
 		def visited = new HashSet<String>()
@@ -123,13 +129,18 @@ public class Target {
 					def f = project.file(inc).absoluteFile
 
 					if (next.form == Form.REMOTE) {
+						// NOTE ; this block is tightly-coupled with logic in PALMadePlugin (sorry)
 
-						def dir = next.root.split('@')[0]
-						def url = next.root.split('@')[1]
-						def ext = url.substring(url.lastIndexOf('.') + 1)
-						def zip = url.substring(0, url.lastIndexOf('.')).replaceAll("\\W", "_") + ".$ext"
+						// Duplicate of the object in the plugin
+						// TODO ; work out how to share these configurations
+						def cacheDump = new CacheDump(project.file('.cache'), project.file('build/dump'))
 
-						f = project.file("build/dump/$zip/$dir/$inc").absoluteFile
+						def dir = next.root.split('@')[0] // dir gets us from the root of the dumped-archive to the meta of what we want
+						def url = next.root.split('@')[1] // url is the address of the archive that we want
+
+						def absolute = new File(new File(cacheDump.apply(url), dir), inc).absoluteFile
+
+						f = absolute
 					}
 
 					if (!found.contains(f)) {

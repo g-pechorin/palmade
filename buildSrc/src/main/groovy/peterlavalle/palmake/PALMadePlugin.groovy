@@ -16,6 +16,7 @@ class PALMadePlugin implements Plugin<Project> {
 			inc "src/$name/cmake"
 		}
 
+		// NOTE ; this line is tightly-coupled with logic in Target (sorry)
 		def cacheDump = new CacheDump(project.file('.cache'), project.file('build/dump'))
 
 		project.task('listCMake') {
@@ -54,27 +55,15 @@ class PALMadePlugin implements Plugin<Project> {
 
 					} else {
 
-						def dir = target.root.split('@')[0]
-						def url = target.root.split('@')[1]
+						// NOTE ; this block is tightly-coupled with logic in Target (sorry)
+
+						def dir = target.root.split('@')[0] // dir gets us from the root of the dumped-archive to the meta of what we want
+						def url = target.root.split('@')[1] // url is the address of the archive that we want
 
 						def absolute = new File(cacheDump.apply(url), dir).absolutePath.replace('\\', '/')
 
 						master.append("\tadd_subdirectory($absolute $target.name)\n")
-
-						/*
-						ant.get(
-								src: url,
-								dest: project.file(".cache/$zip"),
-								skipexisting: true
-						)
-
-						ant.unzip(
-								src: project.file(".cache/$zip"),
-								dest: project.file("build/dump/$zip")
-						)
-						*/
 					}
-
 				}
 				master.close()
 			}
@@ -85,14 +74,17 @@ class PALMadePlugin implements Plugin<Project> {
 			doLast {
 				if (Os.isFamily(Os.FAMILY_WINDOWS)) {
 					ext.exe = new File(new File(cacheDump.apply('http://www.cmake.org/files/v3.2/cmake-3.2.1-win32-x86.zip'), 'bin'), 'cmake.exe')
-				} else if (Os.isFamily(Os.FAMILY_MAC)) {
-					ext.url = 'http://www.cmake.org/files/v3.2/cmake-3.2.1-Darwin-x86_64.tar.gz'
 				} else {
-					assert (Os.isFamily(Os.FAMILY_UNIX))
-					if (Os.isArch('x86')) {
-						ext.url = 'http://www.cmake.org/files/v3.2/cmake-3.2.1-Linux-i386.tar.gz'
+					println('FIXME ; not-Windows stuff needs to be updated')
+					if (Os.isFamily(Os.FAMILY_MAC)) {
+						ext.url = 'http://www.cmake.org/files/v3.2/cmake-3.2.1-Darwin-x86_64.tar.gz'
 					} else {
-						ext.url = 'http://www.cmake.org/files/v3.2/cmake-3.2.1-Linux-x86_64.tar.gz'
+						assert (Os.isFamily(Os.FAMILY_UNIX))
+						if (Os.isArch('x86')) {
+							ext.url = 'http://www.cmake.org/files/v3.2/cmake-3.2.1-Linux-i386.tar.gz'
+						} else {
+							ext.url = 'http://www.cmake.org/files/v3.2/cmake-3.2.1-Linux-x86_64.tar.gz'
+						}
 					}
 				}
 			}
@@ -102,10 +94,10 @@ class PALMadePlugin implements Plugin<Project> {
 			dependsOn(project.scrapeCMake)
 			dependsOn(project.listCMake)
 
-			// since it's not an "in source build" we can do it incrementally
 			ext.cacheDir = project.file('build/cmake-cache')
 
-
+			// since CMake isn't an "in source build" we can use these
+			// ... if you use an "in source build" this might burst into flames
 			inputs.dir project.listCMake.listDir
 			outputs.dir cacheDir
 
@@ -118,7 +110,7 @@ class PALMadePlugin implements Plugin<Project> {
 			}
 		}
 
-		if (false) // TODO ; make this work
+		if (false) // TODO ; make this work so that I get proper output, errors, and result codes
 			project.tasks.create(name: 'targetCMake', type: org.gradle.api.tasks.Exec) {
 
 				workingDir project.cacheCMake.cacheDir
@@ -137,10 +129,11 @@ class PALMadePlugin implements Plugin<Project> {
 			ext.config = 'Release'
 
 			doLast {
+				assert (config.matches('Release|Debug'))
+
 				// println(project.scrapeCMake.exe)
 				// println(project.cacheCMake.cacheDir)
 
-				assert (config.matches('Release|Debug'))
 				ant.exec(executable: project.scrapeCMake.exe, dir: project.cacheCMake.cacheDir) {
 					arg(value: '--build')
 					arg(value: project.cacheCMake.cacheDir)
