@@ -1,20 +1,32 @@
 #include <iostream>
 #include <GLFW/glfw3.h>
+#include <lua.hpp>
 
 int main(int argc, char* argv[])
 {
-	std::cout << "Hello!" << std::endl;
-
-
-
 	/* Initialize the library */
 	if (!glfwInit())
 	{
 		return EXIT_FAILURE;
 	}
 
+	lua_State* lvm = luaL_newstate();
+
+	lua_pushcfunction(lvm, [](lua_State*lvm) -> int {
+		lua_pushinteger(lvm, 640);
+		lua_pushinteger(lvm, 480);
+		lua_pushstring(lvm, "Hello World!");
+		return 3;
+	});
+
+	lua_call(lvm, 0, 3);
+
+	auto w = lua_tointeger(lvm, 1);
+	auto h = lua_tointeger(lvm, 2);
+	auto t = lua_tostring(lvm, 3);
+
 	/* Create a windowed mode window and its OpenGL context */
-	GLFWwindow* window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
+	GLFWwindow* window = glfwCreateWindow(w, h, t, nullptr, nullptr);
 	if (!window)
 	{
 		glfwTerminate();

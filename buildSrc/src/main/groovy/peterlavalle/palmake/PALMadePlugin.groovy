@@ -9,10 +9,9 @@ import peterlavalle.palmade.*
 class PALMadePlugin implements Plugin<Project> {
 	void apply(Project project) {
 
-		def targets = project.container(PALTarget)
-		project.extensions.targets = targets
-
 		def cacheDump = new CacheDump(project.file('.cache'), project.file('build/dump'))
+
+		project.extensions.targets = project.container(PALTarget)
 
 		project.task('listCMake') {
 
@@ -34,10 +33,22 @@ class PALMadePlugin implements Plugin<Project> {
 				//master.append('set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++")\n')
 				master.append("project($project.name)\n")
 				master.append('\n')
-				targets.each {
+
+				// HACK ; why aren't these persisted!?
+				project.targets.each {
 					target ->
 						target.project = project
 						target.cacheDump = cacheDump
+				}
+
+				project.targets.each {
+					target ->
+						target.project = project
+						target.cacheDump = cacheDump
+
+						assert null != cacheDump
+						assert null != target.project
+						assert null != target.cacheDump
 
 						if (target.form == Form.Extern()) {
 							master.append("\t# $target.name is EXTERN\n")
@@ -46,7 +57,7 @@ class PALMadePlugin implements Plugin<Project> {
 							def name = target.name
 							master.append("\tadd_subdirectory($path $name)\n")
 						} else {
-							def listFile = new File((File) listDir, "$target.name/CMakeLists.txt")
+							def listFile = new File(new File((File) listDir, target.name), 'CMakeLists.txt')
 							assert (listFile.getParentFile().exists() || listFile.getParentFile().mkdirs())
 
 							CMakeList.apply(new FileWriter(listFile), target).close()

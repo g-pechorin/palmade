@@ -12,7 +12,7 @@ $( target.incPaths.foldLeft("include_directories(")(_ + "\n\t" + _) )$
 # create the target
 $( target.srcPaths.foldLeft(
 	target.form match {
-		case Form.REMOTE(_) => sys.error("REMOTE targets should provide their own CMakeLists")
+		case Form.REMOTE(_) => "add_library(%s %s".format(target.name, "STATIC")
 		case Form.EXTERN => sys.error("EXTERN targets should not have CMakeLists by their nature")
 		case Form.PROGRAM => "add_executable(%s" format target.name
 		case Form.MODULE | Form.STATIC => "add_library(%s %s".format(target.name, target.form)

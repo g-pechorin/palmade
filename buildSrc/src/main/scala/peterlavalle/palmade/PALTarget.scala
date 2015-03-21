@@ -58,9 +58,9 @@ case class PALTarget(name: String) {
 	//// ====================
 	// Source handling
 
-	private val sourceFolders = new util.LinkedHashMap[String, String]()
+	private val sourceFolders = new util.LinkedList[(String, String)]()
 
-	def src(path: String, pattern: String): Unit = sourceFolders(path) = pattern
+	def src(path: String, pattern: String): Unit = sourceFolders.add(path -> pattern)
 
 	def src(path: String): Unit = src(path, "\\w+(/\\w+)*\\.[ch](pp)?")
 
@@ -147,23 +147,31 @@ case class PALTarget(name: String) {
 	}
 
 	def expPaths: List[String] = {
+		require(null != cacheDump)
+
 		val mine: List[String] =
 			exported.toList.map(locate).map(_.getAbsolutePath.replace('\\', '/'))
 
 		libNames
 			.map(peerTarget)
-			.map(_.expPaths)
+			.map {
+			case peer =>
+				peer.cacheDump = cacheDump
+				peer.expPaths
+		}
 			.foldLeft(mine)(_ ++ _)
 	}
 
 	/**
 	 * These are what we need to include (... so our sources and our peer's exports)
 	 */
-	def incPaths =
+	def incPaths = {
+		require(null != cacheDump)
 		libNames.map(peerTarget).map(_.expPaths).foldLeft(sourceFolders.map(_._1).map(project.file).map(_.getAbsolutePath.replace('\\', '/'))) {
 			case (found, next) =>
 				found ++ next.filterNot(found.contains)
 		}
+	}
 
 	//// --------------------
 }
