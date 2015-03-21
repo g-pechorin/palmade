@@ -62,6 +62,7 @@ Most of these require deeper knowledge of Gradle than the [User Guide](http://ww
 	* I want to use closures that look like `name(Form) { ... }` rather than `name { form = Form ... }`
 * share the project with all targets once
 * share the cacheDump via some sort of project extension
+* check provided MD5
 
 ## SOON
 

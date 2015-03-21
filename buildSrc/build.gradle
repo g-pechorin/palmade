@@ -26,7 +26,7 @@ sourceSets.main.scala.srcDirs += file("$buildDir/generated/samon-sources")
 compileGroovy.dependsOn(compileScala)
 
 group = 'peterlavalle.palmade'
-version = '0.0.0.1'
+version = '0.0.0.2'
 
 uploadArchives {
     repositories {

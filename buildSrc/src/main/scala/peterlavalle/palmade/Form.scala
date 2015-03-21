@@ -15,7 +15,6 @@ object Form {
 	case class REMOTE(url: String)(md5: String) extends TFormat
 
 
-
 	def Module = MODULE
 
 	def Static = STATIC
@@ -24,8 +23,8 @@ object Form {
 
 	def Extern = EXTERN
 
-	def Remote(url: String) = Remote(url, null)
+	def Remote(url: String): REMOTE = Remote(url, null)
 
-	def Remote(url: String, md5: String) = REMOTE(url)(md5)
+	def Remote(url: String, md5: String): REMOTE = REMOTE(url)(md5)
 
 }

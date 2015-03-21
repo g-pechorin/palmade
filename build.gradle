@@ -34,7 +34,7 @@ targets {
 	}
 
 	lua {
-		form = Form.Remote('lua-5.3.0@http://www.lua.org/ftp/lua-5.3.0.tar.gz', a1b0a7e92d0c85bbff7a8d27bf29f8af)
+		form = Form.Remote('lua-5.3.0@http://www.lua.org/ftp/lua-5.3.0.tar.gz', 'a1b0a7e92d0c85bbff7a8d27bf29f8af')
 
 		src('src', '((?!(luac|lua)).)+\\.c')
 		src('src', '.+\\.h')

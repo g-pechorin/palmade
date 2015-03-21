@@ -7,6 +7,8 @@ import peterlavalle.palmade.*
 
 
 class PALMadePlugin implements Plugin<Project> {
+
+	@Override
 	void apply(Project project) {
 
 		def cacheDump = new CacheDump(project.file('.cache'), project.file('build/dump'))
@@ -18,7 +20,7 @@ class PALMadePlugin implements Plugin<Project> {
 			group = 'Build Setup'
 			description = 'Generates CMakeLists files for defined targets'
 
-			ext.listDir = project.file('build/cmake-lists')
+			ext.listDir = project.file("$project.buildDir/cmake-lists")
 
 			doLast {
 
