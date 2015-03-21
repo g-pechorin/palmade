@@ -21,9 +21,11 @@ class PALMadePlugin implements Plugin<Project> {
 
 		project.task('listCMake') {
 
+			group = 'Build Setup'
+			description 'Generates CMakeLists.txt files for defined targets'
+
 			ext.listDir = project.file('build/cmake-lists')
 
-			description 'Generates CMakeLists.txt files for defined targets'
 
 			doLast {
 				assert (listDir.exists() || listDir.mkdirs())
@@ -39,7 +41,12 @@ class PALMadePlugin implements Plugin<Project> {
 				master.append('\n')
 				targets.each { target ->
 
-					if (target.form != Form.REMOTE) {
+					if (target.form == Form.EXTERN) {
+
+						master.append("\t# $target.name is EXTERN\n")
+
+					} else if (target.form != Form.REMOTE) {
+
 						def sourceFiles = target.sourceFiles(project)
 
 						// ...
@@ -71,6 +78,9 @@ class PALMadePlugin implements Plugin<Project> {
 
 		project.task('scrapeCMake') {
 
+			group = 'Build Setup'
+			description 'Downloads a CMake archive for your platform'
+
 			doLast {
 				if (Os.isFamily(Os.FAMILY_WINDOWS)) {
 					ext.exe = new File(new File(cacheDump.apply('http://www.cmake.org/files/v3.2/cmake-3.2.1-win32-x86.zip'), 'bin'), 'cmake.exe')
@@ -93,6 +103,9 @@ class PALMadePlugin implements Plugin<Project> {
 		project.task('cacheCMake') {
 			dependsOn(project.scrapeCMake)
 			dependsOn(project.listCMake)
+
+			group = 'Build Setup'
+			description 'Uses the generated CMakeLists to generate default platform build files'
 
 			ext.cacheDir = project.file('build/cmake-cache')
 
@@ -125,6 +138,9 @@ class PALMadePlugin implements Plugin<Project> {
 		project.task('buildCMake') {
 			dependsOn(project.scrapeCMake)
 			dependsOn(project.cacheCMake)
+
+			group = 'Build Setup'
+			description 'Uses CMake\'s --build command to build a --config'
 
 			ext.config = 'Release'
 

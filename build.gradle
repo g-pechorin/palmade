@@ -18,7 +18,7 @@ targets {
 	developerGuide {
 	}
 
-	glfw3 {
+	glfw {
 		form = Form.REMOTE
 
 		// you don't need-need this arrangement, but it makes the example easier
@@ -28,9 +28,14 @@ targets {
 		inc 'include'
 	}
 
+	opengl32 {
+		form = Form.EXTERN
+	}
+
 	graphical {
 		form = Form.PROGRAM
-		lib 'glfw3'
+		lib 'glfw'
+		lib 'opengl32'
 	}
 
 	quickStart {
