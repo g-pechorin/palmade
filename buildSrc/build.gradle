@@ -1,7 +1,29 @@
-apply plugin: 'groovy'
+
+buildscript {
+	repositories {
+		mavenCentral()
+		mavenLocal()
+
+		maven {
+			name "Peter's Stuff"
+			url 'https://dl.dropboxusercontent.com/u/15094498/repo/snap'
+		}
+	}
+
+	dependencies {
+		classpath 'com.peterlavalle.samon:buildSrc:0.0.0.1'
+	}
+}
+
 apply plugin: 'java'
+apply plugin: 'groovy'
 apply plugin: 'scala'
 apply plugin: 'maven'
+apply plugin: 'samon'
+
+sourceSets.main.scala.srcDirs += file("$buildDir/generated/samon-sources")
+
+compileGroovy.dependsOn(compileScala)
 
 group = 'peterlavalle.palmade'
 version = '0.0.0.1'
@@ -14,25 +36,6 @@ uploadArchives {
     }
 }
 
-apply plugin: 'samon'
-buildscript {
-	repositories {
-		// Samon uses stuff in central
-		mavenCentral()
-		mavenLocal()
-
-		// Samon will be here
-		maven {
-			name "Peter's Stuff"
-			url 'https://dl.dropboxusercontent.com/u/15094498/repo/snap'
-		}
-	}
-
-	// Samon needs to be added as a dependency
-	dependencies {
-		classpath 'com.peterlavalle.samon:grask:0.0.0.0-SNAPSHOT'
-	}
-}
 
 repositories {
 	mavenCentral()
@@ -41,10 +44,11 @@ repositories {
 
 dependencies {
 	compile 'org.scala-lang:scala-library:2.11.4'
+	compile 'org.rauschig:jarchivelib:0.7.0'
+	
 	compile gradleApi()
 }
 
-compileGroovy.dependsOn(compileScala)
 
 task release {
 	dependsOn(uploadArchives)

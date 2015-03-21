@@ -13,7 +13,7 @@ public class Target {
 		this.name = name
 	}
 
-	final LinkedHashMap<String, String> sourceFolders = new LinkedHashMap<String, String>()
+	private LinkedHashMap<String, String> sourceFolders = new LinkedHashMap<String, String>()
 
 	public void src(final String path, final String pattern) {
 		assert (!sourceFolders.containsKey(path))
@@ -61,7 +61,7 @@ public class Target {
 	}
 
 
-	final LinkedHashSet<String> libraries = new LinkedHashSet<String>();
+	private LinkedHashSet<String> libraries = new LinkedHashSet<String>();
 
 	public void lib(final String library) {
 		libraries.add(library)
@@ -121,6 +121,17 @@ public class Target {
 			if (visited.add(next.name)) {
 				for (final String inc : next.includeFolders) {
 					def f = project.file(inc).absoluteFile
+
+					if (next.form == Form.REMOTE) {
+
+						def dir = next.root.split('@')[0]
+						def url = next.root.split('@')[1]
+						def ext = url.substring(url.lastIndexOf('.') + 1)
+						def zip = url.substring(0, url.lastIndexOf('.')).replaceAll("\\W", "_") + ".$ext"
+
+						f = project.file("build/dump/$zip/$dir/$inc").absoluteFile
+					}
+
 					if (!found.contains(f)) {
 						found.add(f)
 					}
@@ -133,5 +144,25 @@ public class Target {
 		}
 
 		return found
+	}
+
+	private String root
+
+	String getRoot() {
+		return root
+	}
+
+	public void setRoot(String root) {
+
+		assert libraries.isEmpty()
+		assert 1 == sourceFolders.size()
+
+		// death or glory
+		libraries = null
+		sourceFolders = null
+
+		assert null == this.root
+
+		this.root = root
 	}
 }

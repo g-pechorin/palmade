@@ -9,7 +9,7 @@ CMake front-end for Gradle ... or something near enough you won't notice the dif
 * IDE integration as-good-as CMake already does
 * ZeroInstall wrapper-like functionality
 	* cheats by scraping a CMake dist and using that
-* Spew reams and reams of C++ to combine it with GLFW3 or NDK and implement SVT in magical shader language
+* Spew reams and reams of C++ to combine it with GLFW3 or NDK
 
 # Usage
 	apply plugin: 'palmade'
@@ -28,3 +28,16 @@ CMake front-end for Gradle ... or something near enough you won't notice the dif
 			classpath 'peterlavalle.palmade:buildSrc:0.0.0.0'
 		}
 	}
+
+# Change Log
+
+## 0.0.0.1
+
+Changes to let me use [GLFW3](http://www.glfw.org/)
+
+* supports "remote" projects where once needs to specify a URL to a `.zip` with the sources
+
+
+## 0.0.0.0
+
+Initial version

@@ -16,6 +16,8 @@ class PALMadePlugin implements Plugin<Project> {
 			inc "src/$name/cmake"
 		}
 
+		def cacheDump = new CacheDump(project.file('.cache'), project.file('build/dump'))
+
 		project.task('listCMake') {
 
 			ext.listDir = project.file('build/cmake-lists')
@@ -36,69 +38,62 @@ class PALMadePlugin implements Plugin<Project> {
 				master.append('\n')
 				targets.each { target ->
 
-					def sourceFiles = target.sourceFiles(project)
+					if (target.form != Form.REMOTE) {
+						def sourceFiles = target.sourceFiles(project)
 
-					// ...
-					def listFile = new File(listDir, "$target.name/CMakeLists.txt")
-					assert (listFile.getParentFile().exists() || listFile.getParentFile().mkdirs())
-					CMakeList.apply(new FileWriter(listFile),
-							target.name, target.form,
-							(java.util.Set<File>) sourceFiles,
-							(target.form == Form.PROGRAM || target.form == Form.MODULE) ? (java.util.List<String>) target.getLibraries(project.targets.asMap) : new java.util.LinkedList<String>(),
-							(java.util.List<String>) (target.getExports(project))
-					).close()
-					master.append("\tadd_subdirectory($target.name)\n")
+						// ...
+						def listFile = new File(listDir, "$target.name/CMakeLists.txt")
+						assert (listFile.getParentFile().exists() || listFile.getParentFile().mkdirs())
+						CMakeList.apply(new FileWriter(listFile),
+								target.name, target.form,
+								(Set<File>) sourceFiles,
+								(target.form == Form.PROGRAM || target.form == Form.MODULE) ? (List<String>) target.getLibraries(project.targets.asMap) : new java.util.LinkedList<String>(),
+								(List<String>) (target.getExports(project))
+						).close()
+						master.append("\tadd_subdirectory($target.name)\n")
+
+					} else {
+
+						def dir = target.root.split('@')[0]
+						def url = target.root.split('@')[1]
+
+						def absolute = new File(cacheDump.apply(url), dir).absolutePath.replace('\\', '/')
+
+						master.append("\tadd_subdirectory($absolute $target.name)\n")
+
+						/*
+						ant.get(
+								src: url,
+								dest: project.file(".cache/$zip"),
+								skipexisting: true
+						)
+
+						ant.unzip(
+								src: project.file(".cache/$zip"),
+								dest: project.file("build/dump/$zip")
+						)
+						*/
+					}
+
 				}
 				master.close()
 			}
 		}
 
-
 		project.task('scrapeCMake') {
 
-			if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-				ext.url = 'http://www.cmake.org/files/v3.2/cmake-3.2.1-win32-x86.zip'
-			} else if (Os.isFamily(Os.FAMILY_MAC)) {
-				ext.url = 'http://www.cmake.org/files/v3.2/cmake-3.2.1-Darwin-x86_64.tar.gz'
-			} else {
-				assert (Os.isFamily(Os.FAMILY_UNIX))
-				if (Os.isArch('x86')) {
-					ext.url = 'http://www.cmake.org/files/v3.2/cmake-3.2.1-Linux-i386.tar.gz'
-				} else {
-					ext.url = 'http://www.cmake.org/files/v3.2/cmake-3.2.1-Linux-x86_64.tar.gz'
-				}
-			}
-
-			ext.cacheDir = project.file('.cache')
-			ext.dumpDir = project.file('build/dump')
-
 			doLast {
-				assert (cacheDir.exists() || cacheDir.mkdirs())
-				assert (dumpDir.exists() || dumpDir.mkdirs())
-
-				def archive = url.substring(url.lastIndexOf('/') + 1)
-				def cache = new File(cacheDir, archive)
-				def dump = dumpDir
-
-				ant.get(
-						src: url,
-						dest: cache,
-						skipexisting: true
-				)
-
 				if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-					ant.unzip(
-							src: cache,
-							dest: dump
-					)
-					ext.exe = new File(dumpDir, archive.substring(0, archive.lastIndexOf('.')) + '/bin/cmake.exe')
+					ext.exe = new File(new File(cacheDump.apply('http://www.cmake.org/files/v3.2/cmake-3.2.1-win32-x86.zip'), 'bin'), 'cmake.exe')
+				} else if (Os.isFamily(Os.FAMILY_MAC)) {
+					ext.url = 'http://www.cmake.org/files/v3.2/cmake-3.2.1-Darwin-x86_64.tar.gz'
 				} else {
-					ant.untar(
-							src: cache,
-							dest: dump,
-							compression: 'gzip'
-					)
-					ext.exe = null
+					assert (Os.isFamily(Os.FAMILY_UNIX))
+					if (Os.isArch('x86')) {
+						ext.url = 'http://www.cmake.org/files/v3.2/cmake-3.2.1-Linux-i386.tar.gz'
+					} else {
+						ext.url = 'http://www.cmake.org/files/v3.2/cmake-3.2.1-Linux-x86_64.tar.gz'
+					}
 				}
 			}
 		}
@@ -109,6 +104,8 @@ class PALMadePlugin implements Plugin<Project> {
 
 			// since it's not an "in source build" we can do it incrementally
 			ext.cacheDir = project.file('build/cmake-cache')
+
+
 			inputs.dir project.listCMake.listDir
 			outputs.dir cacheDir
 
@@ -121,6 +118,18 @@ class PALMadePlugin implements Plugin<Project> {
 			}
 		}
 
+		if (false) // TODO ; make this work
+			project.tasks.create(name: 'targetCMake', type: org.gradle.api.tasks.Exec) {
+
+				workingDir project.cacheCMake.cacheDir
+
+				dependsOn(project.scrapeCMake)
+				dependsOn(project.cacheCMake)
+
+				ext.config = 'Release'
+				commandLine project.tasks.scrapeCMake.exe, '--build', project.tasks.cacheCMake.cacheDir, '--config', config
+			}
+
 		project.task('buildCMake') {
 			dependsOn(project.scrapeCMake)
 			dependsOn(project.cacheCMake)
@@ -128,6 +137,9 @@ class PALMadePlugin implements Plugin<Project> {
 			ext.config = 'Release'
 
 			doLast {
+				// println(project.scrapeCMake.exe)
+				// println(project.cacheCMake.cacheDir)
+
 				assert (config.matches('Release|Debug'))
 				ant.exec(executable: project.scrapeCMake.exe, dir: project.cacheCMake.cacheDir) {
 					arg(value: '--build')

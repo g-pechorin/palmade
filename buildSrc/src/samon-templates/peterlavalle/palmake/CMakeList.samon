@@ -9,6 +9,7 @@ $( includes.map(_.getAbsolutePath().replace("\\", "/")).foldLeft("include_direct
 )
 
 $( form match {
+	case Form.REMOTE => sys.error("REMOTE targets should provide their own CMakeLists.txt")
 	case Form.PROGRAM => "add_executable(%s".format(name)
 	case Form.MODULE | Form.STATIC => "add_library(%s %s".format(name, form)
 } )$
