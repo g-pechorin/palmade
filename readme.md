@@ -39,11 +39,12 @@ CMake front-end for Gradle ... or something near enough you won't notice the dif
 
 ## 0.0.0.1
 
-Changes to let me use [GLFW3](http://www.glfw.org/)
+Changes to let me use [GLFW3](http://www.glfw.org/) and [Lua](http://www.lua.org/)
 
 * supports "REMOTE" projects where once needs to specify a URL to a `.zip` with the sources
 * uses a nicer downloading implementation
 * made the tasks prettier
+* rewrote a bunch of the guts into Scala and made them prettier
 
 ## 0.0.0.0
 
