@@ -59,10 +59,8 @@ Most of these require deeper knowledge of Gradle than the [User Guide](http://ww
 * switch to using `Exec` rather than `ant.exec`
 * make prettier `targets {...}` closures
 	* I want to use closures that look like `name(Form) { ... }` rather than `name { form = Form ... }`
-* de-worm the Target class
-	* there is some coupling (noted in comments) which is bad
-	* I'm sure that there's a way to share the plugin or some configuration object amongst the tasks and targets
-	* REMOTE Targets seem to have a `src/$name/cmake` thing bleeding into the includes
+* share the project with all targets once
+* share the cacheDump via some sort of project extension
 
 ## SOON
 

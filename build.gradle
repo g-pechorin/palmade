@@ -1,7 +1,6 @@
 // CMD /K "C: && CD $(CURRENT_DIRECTORY) && gradlew cacheCMake && PAUSE && EXIT"
 // https://gradle.org/docs/current/userguide/custom_plugins.html
 
-
 ///
 // GradleW Task
 task wrapper(type: Wrapper) {
@@ -11,41 +10,45 @@ task wrapper(type: Wrapper) {
 
 apply plugin: 'palmade'
 
-import peterlavalle.palmake.Form
-
+import peterlavalle.palmade.*
 
 targets {
-	developerGuide {
-	}
-
-	glfw {
-		form = Form.REMOTE
-
-		// you don't need-need this arrangement, but it makes the example easier
-		ext.variant = '29b40112c234c3021648ea42a5e74cc122ba08b4'
-		root = "glfw-$variant@https://github.com/glfw/glfw/archive/$variant" + '.zip'
-
-		inc 'include'
-	}
-
 	opengl32 {
-		form = Form.EXTERN
+		form = Form.Extern()
 	}
 
 	graphical {
-		form = Form.PROGRAM
+		src 'src/graphical/cmake'
+		form = Form.Program()
 		lib 'glfw'
 		lib 'opengl32'
 	}
 
-	quickStart {
+	glfw {
+		// you don't need-need this arrangement, but it makes the example easier
+		ext.variant = '29b40112c234c3021648ea42a5e74cc122ba08b4'
+		form = Form.Remote("glfw-$variant@https://github.com/glfw/glfw/archive/$variant" + '.zip')
 
+		exp 'include'
+	}
+
+	developerGuide {
+		src "src/$name/cmake"
+		exp "src/$name/cmake"
+	}
+	quickStart {
+		src "src/$name/cmake"
+		exp "src/$name/cmake"
 	}
 	userGuide {
-		form = Form.PROGRAM
+		form = Form.Program()
+
+		src "src/$name/cmake"
+		exp "src/$name/cmake"
 
 		lib 'quickStart'
 		lib 'developerGuide'
 	}
 }
+
 

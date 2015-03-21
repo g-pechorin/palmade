@@ -1,76 +1,58 @@
 package peterlavalle.palmake
 
 import org.apache.tools.ant.taskdefs.condition.Os
-
-import org.gradle.api.GradleScriptException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import peterlavalle.palmade.*
 
 
 class PALMadePlugin implements Plugin<Project> {
 	void apply(Project project) {
-		def targets = project.container(Target)
-		project.extensions.targets = targets
-		targets.all {
-			src "src/$name/cmake"
-			inc "src/$name/cmake"
-		}
 
-		// NOTE ; this line is tightly-coupled with logic in Target (sorry)
+		def targets = project.container(PALTarget)
+		project.extensions.targets = targets
+
 		def cacheDump = new CacheDump(project.file('.cache'), project.file('build/dump'))
 
 		project.task('listCMake') {
 
 			group = 'Build Setup'
-			description 'Generates CMakeLists.txt files for defined targets'
+			description = 'Generates CMakeLists files for defined targets'
 
 			ext.listDir = project.file('build/cmake-lists')
 
-
 			doLast {
+
 				assert (listDir.exists() || listDir.mkdirs())
-				def master = new FileWriter(new File(listDir, 'CMakeLists.txt'))
+				def master = new FileWriter(new File((File) listDir, 'CMakeLists.txt'))
 
 				master.append('cmake_minimum_required (VERSION 2.8)\n')
 				master.append('\n')
 				master.append('add_definitions(-D_CRT_SECURE_NO_WARNINGS)\n')
 				master.append('set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -std=gnu++11 -static-libstdc++")\n')
 				master.append('\n')
-				master.append('set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++")\n')
+				//master.append('set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++")\n')
 				master.append("project($project.name)\n")
 				master.append('\n')
-				targets.each { target ->
+				targets.each {
+					target ->
+						target.project = project
+						target.cacheDump = cacheDump
 
-					if (target.form == Form.EXTERN) {
+						if (target.form == Form.Extern()) {
+							master.append("\t# $target.name is EXTERN\n")
+						} else if (target.isRemotelyProvided('CMakeLists.txt')) {
+							def path = target.locate('CMakeLists.txt').parentFile.absolutePath.replace('\\', '/')
+							def name = target.name
+							master.append("\tadd_subdirectory($path $name)\n")
+						} else {
+							def listFile = new File((File) listDir, "$target.name/CMakeLists.txt")
+							assert (listFile.getParentFile().exists() || listFile.getParentFile().mkdirs())
 
-						master.append("\t# $target.name is EXTERN\n")
+							CMakeList.apply(new FileWriter(listFile), target).close()
 
-					} else if (target.form != Form.REMOTE) {
-
-						def sourceFiles = target.sourceFiles(project)
-
-						// ...
-						def listFile = new File(listDir, "$target.name/CMakeLists.txt")
-						assert (listFile.getParentFile().exists() || listFile.getParentFile().mkdirs())
-						CMakeList.apply(new FileWriter(listFile),
-								target.name, target.form,
-								(Set<File>) sourceFiles,
-								(target.form == Form.PROGRAM || target.form == Form.MODULE) ? (List<String>) target.getLibraries(project.targets.asMap) : new java.util.LinkedList<String>(),
-								(List<String>) (target.getExports(project))
-						).close()
-						master.append("\tadd_subdirectory($target.name)\n")
-
-					} else {
-
-						// NOTE ; this block is tightly-coupled with logic in Target (sorry)
-
-						def dir = target.root.split('@')[0] // dir gets us from the root of the dumped-archive to the meta of what we want
-						def url = target.root.split('@')[1] // url is the address of the archive that we want
-
-						def absolute = new File(cacheDump.apply(url), dir).absolutePath.replace('\\', '/')
-
-						master.append("\tadd_subdirectory($absolute $target.name)\n")
-					}
+							master.append("\tadd_subdirectory($target.name)\n")
+						}
 				}
 				master.close()
 			}
@@ -79,7 +61,7 @@ class PALMadePlugin implements Plugin<Project> {
 		project.task('scrapeCMake') {
 
 			group = 'Build Setup'
-			description 'Downloads a CMake archive for your platform'
+			description = 'Downloads a CMake archive for your platform'
 
 			doLast {
 				if (Os.isFamily(Os.FAMILY_WINDOWS)) {
@@ -105,7 +87,7 @@ class PALMadePlugin implements Plugin<Project> {
 			dependsOn(project.listCMake)
 
 			group = 'Build Setup'
-			description 'Uses the generated CMakeLists to generate default platform build files'
+			description = 'Uses the generated CMakeLists to generate default platform build files'
 
 			ext.cacheDir = project.file('build/cmake-cache')
 
@@ -140,7 +122,7 @@ class PALMadePlugin implements Plugin<Project> {
 			dependsOn(project.cacheCMake)
 
 			group = 'Build Setup'
-			description 'Uses CMake\'s --build command to build a --config'
+			description = 'Uses CMake\'s --build command to build a --config'
 
 			ext.config = 'Release'
 

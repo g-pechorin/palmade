@@ -1,28 +1,27 @@
 $import scala.collection.JavaConversions._
 $import java.util
 $import java.io.File
-$template(name: String, form: Form, sourceFiles: util.Set[File], libraries: util.List[String], includes: util.List[File])
+$import peterlavalle.palmade.PALTarget
+$import peterlavalle.palmade.Form
+$template(target: PALTarget)
 # Auto-Generated CMake file - DNE!
-$( includes.map(_.getAbsolutePath().replace("\\", "/")).foldLeft("include_directories(")(_ + "\n\t" + _) )$
+
+$( target.incPaths.foldLeft("include_directories(")(_ + "\n\t" + _) )$
 )
 
 # create the target
-$( sourceFiles.toList.foldLeft(
-	form match {
-		case Form.REMOTE => sys.error("REMOTE targets should provide their own CMakeLists")
+$( target.srcPaths.foldLeft(
+	target.form match {
+		case Form.REMOTE(_) => sys.error("REMOTE targets should provide their own CMakeLists")
 		case Form.EXTERN => sys.error("EXTERN targets should not have CMakeLists by their nature")
-		case Form.PROGRAM => "add_executable(%s" format name
-		case Form.MODULE | Form.STATIC => "add_library(%s %s".format(name, form)
-	})(_ + "\n\t" + _.getAbsolutePath.replace('\\', '/')) )$
+		case Form.PROGRAM => "add_executable(%s" format target.name
+		case Form.MODULE | Form.STATIC => "add_library(%s %s".format(target.name, target.form)
+	})(_ + "\n\t" + _) )$
 )
 
 # add libraries to the target
-$( if (libraries.isEmpty())
+$( if (target.libNames.isEmpty())
 	"# ... are not used here"
 else {
-	// http://www.cmake.org/cmake/help/v3.0/command/target_link_libraries.html
-	
-	require(form == Form.PROGRAM || form == Form.MODULE)
-	
-	libraries.foldLeft("target_link_libraries(%s" format name)(_ + " " + _) + ")"
+	target.libNames.foldLeft("target_link_libraries(%s" format target.name)(_ + " " + _) + ")"
 } )$
