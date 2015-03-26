@@ -10,16 +10,15 @@ task wrapper(type: Wrapper) {
 
 apply plugin: 'palmade'
 
-import peterlavalle.palmade.*
-
 targets {
 	opengl32 {
-		form = Form.Extern()
+		Extern()
 	}
 
 	graphical {
+		Program()
+
 		src 'src/graphical/cmake'
-		form = Form.Program()
 		lib 'glfw'
 		lib 'opengl32'
 		lib 'lua'
@@ -28,13 +27,14 @@ targets {
 	glfw {
 		// you don't need-need this arrangement, but it makes the example easier
 		ext.variant = '29b40112c234c3021648ea42a5e74cc122ba08b4'
-		form = Form.Remote("glfw-$variant@https://github.com/glfw/glfw/archive/$variant" + '.zip')
+
+		Remote("glfw-$variant@https://github.com/glfw/glfw/archive/$variant" + '.zip')
 
 		exp 'include'
 	}
 
 	lua {
-		form = Form.Remote('lua-5.3.0@http://www.lua.org/ftp/lua-5.3.0.tar.gz', 'a1b0a7e92d0c85bbff7a8d27bf29f8af')
+		Remote('lua-5.3.0@http://www.lua.org/ftp/lua-5.3.0.tar.gz', 'a1b0a7e92d0c85bbff7a8d27bf29f8af')
 
 		src('src', '((?!(luac|lua)).)+\\.c')
 		src('src', '.+\\.h')
@@ -46,12 +46,14 @@ targets {
 		src "src/$name/cmake"
 		exp "src/$name/cmake"
 	}
+
 	quickStart {
 		src "src/$name/cmake"
 		exp "src/$name/cmake"
 	}
+
 	userGuide {
-		form = Form.Program()
+		Program()
 
 		src "src/$name/cmake"
 		exp "src/$name/cmake"

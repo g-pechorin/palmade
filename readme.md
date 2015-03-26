@@ -37,6 +37,9 @@ CMake front-end for Gradle ... or something near enough you won't notice the dif
 
 # Change Log
 
+## 0.0.0.2
+* moved the format thingies onto the PALTarget class - BAM! prettier
+
 ## 0.0.0.1
 
 Changes to let me use [GLFW3](http://www.glfw.org/) and [Lua](http://www.lua.org/)
@@ -58,8 +61,6 @@ Most of these require deeper knowledge of Gradle than the [User Guide](http://ww
 * test on not-Windows
 * get CMake to re-launch the Gradle build
 * switch to using `Exec` rather than `ant.exec`
-* make prettier `targets {...}` closures
-	* I want to use closures that look like `name(Form) { ... }` rather than `name { form = Form ... }`
 * share the project with all targets once
 * share the cacheDump via some sort of project extension
 * check provided MD5

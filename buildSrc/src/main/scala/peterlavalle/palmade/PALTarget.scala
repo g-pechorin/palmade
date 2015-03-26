@@ -3,6 +3,7 @@ package peterlavalle.palmade
 import java.io.File
 
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer
+import peterlavalle.palmade.Form.REMOTE
 
 import scala.collection.JavaConversions._
 import java.util
@@ -174,4 +175,36 @@ case class PALTarget(name: String) {
 	}
 
 	//// --------------------
+
+
+	def Module {
+		require(form == Form.STATIC)
+		form = Form.MODULE
+	}
+
+	def Static {
+		require(form == Form.STATIC)
+		form = Form.STATIC
+	}
+
+	def Program {
+		require(form == Form.STATIC)
+		form = Form.PROGRAM
+	}
+
+	def Extern {
+		require(form == Form.STATIC)
+		form = Form.EXTERN
+	}
+
+	def Remote(url: String) {
+		Remote(url, null)
+	}
+
+	def Remote(url: String, md5: String) {
+		require(form == Form.STATIC)
+		form = REMOTE(url)(md5)
+	}
+
+
 }

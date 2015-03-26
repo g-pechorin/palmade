@@ -31,9 +31,10 @@ class PALMadePlugin implements Plugin<Project> {
 				master.append('\n')
 				master.append('add_definitions(-D_CRT_SECURE_NO_WARNINGS)\n')
 				master.append('set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -std=gnu++11 -static-libstdc++")\n')
-				master.append('\n')
 				//master.append('set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++")\n')
+				master.append('\n')
 				master.append("project($project.name)\n")
+				master.append('\n')
 				master.append('\n')
 
 				// HACK ; why aren't these persisted!?
@@ -52,7 +53,7 @@ class PALMadePlugin implements Plugin<Project> {
 						assert null != target.project
 						assert null != target.cacheDump
 
-						if (target.form == Form.Extern()) {
+						if (target.form == Form.EXTERN$.MODULE$) {
 							master.append("\t# $target.name is EXTERN\n")
 						} else if (target.isRemotelyProvided('CMakeLists.txt')) {
 							def path = target.locate('CMakeLists.txt').parentFile.absolutePath.replace('\\', '/')
