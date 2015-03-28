@@ -10,10 +10,11 @@ class PALMadePlugin implements Plugin<Project> {
 
 	@Override
 	void apply(Project project) {
+		project.extensions.cacheDump = new CacheDump(project.file('.cache'), project.file('build/dump'))
 
-		def cacheDump = new CacheDump(project.file('.cache'), project.file('build/dump'))
-
-		project.extensions.targets = project.container(PALTarget)
+		project.extensions.targets = project.container(PALTarget, { name ->
+			return new PALTarget(name, project)
+		})
 
 		project.task('listCMake') {
 
@@ -29,30 +30,19 @@ class PALMadePlugin implements Plugin<Project> {
 
 				master.append('cmake_minimum_required (VERSION 2.8)\n')
 				master.append('\n')
-				master.append('add_definitions(-D_CRT_SECURE_NO_WARNINGS)\n')
-				master.append('set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -std=gnu++11 -static-libstdc++")\n')
-				//master.append('set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++")\n')
+				master.append('if(WIN32)\n')
+				master.append('\tadd_definitions(-D_CRT_SECURE_NO_WARNINGS)\n')
+				master.append('else(WIN32)\n')
+				master.append('\tset(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -std=gnu++11 -static-libstdc++")\n')
+				master.append('\tset(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libstdc++")\n')
+				master.append('endif(WIN32)\n')
+				master.append('\n')
 				master.append('\n')
 				master.append("project($project.name)\n")
 				master.append('\n')
-				master.append('\n')
-
-				// HACK ; why aren't these persisted!?
-				project.targets.each {
-					target ->
-						target.project = project
-						target.cacheDump = cacheDump
-				}
 
 				project.targets.each {
 					target ->
-						target.project = project
-						target.cacheDump = cacheDump
-
-						assert null != cacheDump
-						assert null != target.project
-						assert null != target.cacheDump
-
 						if (target.form == Form.EXTERN$.MODULE$) {
 							master.append("\t# $target.name is EXTERN\n")
 						} else if (target.isRemotelyProvided('CMakeLists.txt')) {
@@ -79,7 +69,7 @@ class PALMadePlugin implements Plugin<Project> {
 
 			doLast {
 				if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-					ext.exe = new File(new File(cacheDump.apply('http://www.cmake.org/files/v3.2/cmake-3.2.1-win32-x86.zip'), 'bin'), 'cmake.exe')
+					ext.exe = new File(new File(project.extensions.cacheDump.apply('http://www.cmake.org/files/v3.2/cmake-3.2.1-win32-x86.zip'), 'bin'), 'cmake.exe')
 				} else {
 					println('FIXME ; not-Windows stuff needs to be updated')
 					if (Os.isFamily(Os.FAMILY_MAC)) {

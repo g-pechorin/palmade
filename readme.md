@@ -31,13 +31,22 @@ CMake front-end for Gradle ... or something near enough you won't notice the dif
 		}
 
 		dependencies {
-			classpath 'peterlavalle.palmade:buildSrc:0.0.0.0'
+			classpath 'peterlavalle.palmade:buildSrc:0.0.0.3'
 		}
 	}
 
 # Change Log
 
+## 0.0.0.3
+
+* build targets now have a `inc(path: String)` method that calls `exp()` and `src()`
+* HEADERS form to download a bunch of headers and pretend that it's a lib
+* share the cacheDump via some sort of project extension
+* share the project with all targets once
+	* this was an internal thing - I'm now using a factory closure when creating the targets so all is well
+
 ## 0.0.0.2
+
 * moved the format thingies onto the PALTarget class - BAM! prettier
 
 ## 0.0.0.1
@@ -61,15 +70,14 @@ Most of these require deeper knowledge of Gradle than the [User Guide](http://ww
 * test on not-Windows
 * get CMake to re-launch the Gradle build
 * switch to using `Exec` rather than `ant.exec`
-* share the project with all targets once
-* share the cacheDump via some sort of project extension
 * check provided MD5
 
 ## SOON
 
+* internally switch from using strings to using files for folder names and stuff
+	* ... which won't solve a problem but will be more "standard"
 * platform/architecture "masks"
 	* make things that only exist on "windows" "mac" or whatever
 	* make targets that only exist on Android or CMake (see below)
 * "pluggable" generators
 	* generate Android.mk files
-* HEADERS form to download a bunch of headers and pretend that it's a lib

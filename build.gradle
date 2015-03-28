@@ -22,6 +22,8 @@ targets {
 		lib 'glfw'
 		lib 'opengl32'
 		lib 'lua'
+
+		url 'https://raw.githubusercontent.com/nothings/stb/bdef693b7cc89efb0c450b96a8ae4aecf27785c8/stb_image.h'
 	}
 
 	glfw {

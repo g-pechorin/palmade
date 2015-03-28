@@ -1,6 +1,6 @@
 package peterlavalle.palmade
 
-import java.io.File
+import java.io.{FileWriter, FileOutputStream, File}
 
 import org.gradle.api.internal.FactoryNamedDomainObjectContainer
 import peterlavalle.palmade.Form.REMOTE
@@ -9,11 +9,14 @@ import scala.collection.JavaConversions._
 import java.util
 import org.gradle.api.Project
 
-case class PALTarget(name: String) {
-	var form: Form.TFormat = Form.STATIC
+import scala.collection.mutable
+import scala.io.Source
 
-	var project: Project = _
-	var cacheDump: CacheDump = _
+case class PALTarget(name: String)(project: Project) {
+
+	def cacheDump: CacheDump = project.getExtensions.findByType[CacheDump](classOf[CacheDump])
+
+	var form: Form.TFormat = Form.STATIC
 
 	def locate(path: String): File =
 		form match {
@@ -56,14 +59,54 @@ case class PALTarget(name: String) {
 		project.getExtensions.findByName("targets")
 			.asInstanceOf[FactoryNamedDomainObjectContainer[PALTarget]].findByName(peer)
 
+	def inc(path: String): Unit = {
+		require(null != path)
+
+		src(path)
+		exp(path)
+	}
+
+	def url(http: String, hash: String) {
+
+		require(null != project)
+
+		val name = http.substring(1 + http.lastIndexOf('/'))
+
+		val home = "build/dump/inc-%s".format(project.getName)
+
+		inc(home)
+
+		val file = project.file("%s/%s".format(home, name))
+
+		require((file.getParentFile.exists() && file.getParentFile.isDirectory) || file.getParentFile.mkdirs())
+
+		val download: File = cacheDump.download(http, hash)
+
+		if (!(file.exists() && download.lastModified() < file.lastModified())) {
+			new FileWriter(file)
+				.append(Source.fromFile(download).mkString.replaceAll("\r?\n", "\n"))
+				.close()
+		}
+	}
+
+	def url(http: String): Unit = url(http, null)
+
 	//// ====================
 	// Source handling
 
 	private val sourceFolders = new util.LinkedList[(String, String)]()
 
-	def src(path: String, pattern: String): Unit = sourceFolders.add(path -> pattern)
+	def src(path: String, pattern: String) {
 
-	def src(path: String): Unit = src(path, "\\w+(/\\w+)*\\.[ch](pp)?")
+		require(null != path)
+		require(null != pattern)
+
+		sourceFolders.add(path -> pattern)
+	}
+
+	def src(path: String) {
+		src(path, "\\w+(/\\w+)*\\.[ch](pp)?")
+	}
 
 	def srcPaths = sourceFolders.flatMap {
 		case (path: String, pattern: String) =>
@@ -143,7 +186,6 @@ case class PALTarget(name: String) {
 	private val exported = new util.LinkedHashSet[String]()
 
 	def exp(path: String) {
-		require(!exported.contains(path))
 		exported += path
 	}
 
@@ -155,11 +197,7 @@ case class PALTarget(name: String) {
 
 		libNames
 			.map(peerTarget)
-			.map {
-			case peer =>
-				peer.cacheDump = cacheDump
-				peer.expPaths
-		}
+			.map(_.expPaths)
 			.foldLeft(mine)(_ ++ _)
 	}
 
@@ -168,7 +206,12 @@ case class PALTarget(name: String) {
 	 */
 	def incPaths = {
 		require(null != cacheDump)
-		libNames.map(peerTarget).map(_.expPaths).foldLeft(sourceFolders.map(_._1).map(project.file).map(_.getAbsolutePath.replace('\\', '/'))) {
+		require(null != project)
+
+		val initial: mutable.Buffer[String] =
+			sourceFolders.map(_._1).map(project.file).map(_.getAbsolutePath.replace('\\', '/'))
+
+		libNames.map(peerTarget).map(_.expPaths).foldLeft(initial) {
 			case (found, next) =>
 				found ++ next.filterNot(found.contains)
 		}
@@ -177,22 +220,38 @@ case class PALTarget(name: String) {
 	//// --------------------
 
 
-	def Module {
+	//// ====================
+	// These are the 5 forms of targets with an override for Remote
+
+	/**
+	 * A .dll or .so or whatever - avoid at all costs
+	 */
+	def Module() {
 		require(form == Form.STATIC)
 		form = Form.MODULE
 	}
 
-	def Static {
+	/**
+	 * We're a static library ... or a set of sources which we'll compile with whoever uses them
+	 * (This is the default value - it's really only here for completess)
+	 */
+	def Static() {
 		require(form == Form.STATIC)
 		form = Form.STATIC
 	}
 
-	def Program {
+	/**
+	 * We are a full-fat program - .exe, .elf, whatever
+	 */
+	def Program() {
 		require(form == Form.STATIC)
 		form = Form.PROGRAM
 	}
 
-	def Extern {
+	/**
+	 * We are nothing ... we're actually just a placeholder for a .lib or .a that's going to be available fromt eh compiler - like pthreads or opengl32
+	 */
+	def Extern() {
 		require(form == Form.STATIC)
 		form = Form.EXTERN
 	}
@@ -205,6 +264,4 @@ case class PALTarget(name: String) {
 		require(form == Form.STATIC)
 		form = REMOTE(url)(md5)
 	}
-
-
 }

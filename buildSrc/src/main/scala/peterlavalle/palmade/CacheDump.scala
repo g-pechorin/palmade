@@ -25,14 +25,7 @@ case class CacheDump(cache: File, dump: File) {
 		outputStream
 	}
 
-	/**
-	 * downloads the url, to the cache, then unzips it to the dump and returns the path
-	 * @param url wha to download
-	 * @param md5 what hash we expect
-	 * @return file to the root of the extracted stuff
-	 */
-	def apply(url: String, md5: String): File = {
-
+	def download(url: String, md5: String): File = {
 
 		require((cache.exists() && cache.isDirectory) || cache.mkdirs())
 
@@ -54,6 +47,25 @@ case class CacheDump(cache: File, dump: File) {
 		}
 
 		// TODO ; require the MD5 matches
+
+		cached
+	}
+
+	/**
+	 * downloads the url, to the cache, then unzips it to the dump and returns the path
+	 * @param url what to download
+	 * @param md5 what hash we expect
+	 * @return file to the root of the extracted stuff
+	 */
+	def apply(url: String, md5: String): File = {
+
+		require((cache.exists() && cache.isDirectory) || cache.mkdirs())
+
+		val name = url.split('/').last
+
+		val cached = download(url, md5)
+
+
 
 		// try to uncompress a zip
 		val root = new File(dump, name)
