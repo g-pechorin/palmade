@@ -62,7 +62,7 @@ Changes to let me use [GLFW3](http://www.glfw.org/) and [Lua](http://www.lua.org
 
 Initial version
 
-## TODO (aka not-bugs)
+## TODO
 
 My don't hate me, I know it's broken list.
 Most of these require deeper knowledge of Gradle than the [User Guide](http://www.gradle.org/docs/current/userguide/userguide), [Basic Book](http://www2.gradleware.com/l/68052/2015-01-13/6dm), or [Advanced Book](http://www2.gradleware.com/ebook) imparted on me.
@@ -81,3 +81,8 @@ Most of these require deeper knowledge of Gradle than the [User Guide](http://ww
 	* make targets that only exist on Android or CMake (see below)
 * "pluggable" generators
 	* generate Android.mk files
+<<<<<<< HEAD
+=======
+* HEADERS form to download a bunch of headers and pretend that it's a lib
+	* ... or maybe just a special case of `Remote()`
+>>>>>>> origin/master
