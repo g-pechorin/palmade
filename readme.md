@@ -1,21 +1,24 @@
 # PALMake
 
 CMake front-end for Gradle ... or something near enough you won't notice the difference.
+I didn't find Gradle's native-plugins to "just work"
 
 # Goals
 
 * Specify native targets in a pretty way
 	* prettier than CMake does anyway
-* IDE integration as-good-as CMake already does
-* ZeroInstall wrapper-like functionality
+* work off of CMake's IDE integration
+* don't require anything other than Gradle to be installed
 	* cheats by scraping a CMake dist and using that
-* Spew reams and reams of C++ to combine it with GLFW3 or NDK
+* support spewing reams and reams of C++
+* easy method of utilising existing C++ / CMake projects
 
 # Don't Care
 
 * running `buildCMake` while VisualStudio looking at the project won't work
 	* use `listCMake` to regenerate stuff
 * the concept of multi-module Gradle builds are ignored
+* publishing built things is "don't care"
 
 # Usage
 	apply plugin: 'palmade'
@@ -81,8 +84,4 @@ Most of these require deeper knowledge of Gradle than the [User Guide](http://ww
 	* make targets that only exist on Android or CMake (see below)
 * "pluggable" generators
 	* generate Android.mk files
-<<<<<<< HEAD
-=======
-* HEADERS form to download a bunch of headers and pretend that it's a lib
-	* ... or maybe just a special case of `Remote()`
->>>>>>> origin/master
+
