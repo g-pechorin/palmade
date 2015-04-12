@@ -46,11 +46,16 @@ targets {
 		exp 'src'
 	}
 
-	// Example ; Expat
-	expat {
-		src('src/expat/src')
-		exp 'src/expat/exp'
+	// Example ; pugixml 1.6
+	pugixml {
+		Remote('pugixml-1.6@https://github.com/zeux/pugixml/releases/download/v1.6/pugixml-1.6.tar.gz')
+
+		src('src')
+
+		exp 'src'
 	}
+
+
 	
 	developerGuide {
 		src "src/$name/cmake"
