@@ -1,3 +1,6 @@
+With DropBox's silly removal of the Public folder, this project is unlikely to work again
+
+
 # PALMake
 
 CMake front-end for Gradle ... or something near enough you won't notice the difference.
